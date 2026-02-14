@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molecular Workbench</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Custom Scrollbar for clean look */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+        /* Residue Interaction */
+        .residue { 
+            cursor: pointer; padding: 2px 4px; margin: 1px; border-radius: 4px; transition: all 0.2s; 
+            display: inline-block; user-select: none;
+        }
+        .residue:hover { background-color: #e5e7eb; transform: scale(1.1); }
+        .residue.masked { 
+            background-color: #1f2937; color: #fbbf24; text-decoration: line-through; opacity: 0.8; 
+        }
+        
+        /* Tooltip Logic */
+        .tooltip { position: relative; display: inline-block; }
+        .tooltip .tooltiptext {
+            visibility: hidden; width: 120px; background-color: #333; color: #fff; text-align: center;
+            border-radius: 6px; padding: 5px 0; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -60px;
+            opacity: 0; transition: opacity 0.3s; font-size: 0.75rem; font-family: 'Inter', sans-serif;
+        }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+    </style>
+</head>
+<body class="text-gray-800">
+
+<div class="max-w-6xl mx-auto p-6">
+    <header class="mb-8 text-center">
+        <h1 class="text-3xl font-semibold text-gray-800 tracking-tight">🧬 Molecular Workbench</h1>
+        <p class="text-gray-500 text-sm mt-1">Simple tools for everyday cloning.</p>
+    </header>
+
+    <div class="flex justify-center space-x-2 mb-6 border-b border-gray-200 pb-2">
+        <button onclick="switchTab('primer')" id="tab-primer" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-white shadow-sm text-blue-600 border border-blue-100">Primer Design</button>
+        <button onclick="switchTab('protein')" id="tab-protein" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white transition-colors">Protein Masking</button>
+        <button onclick="switchTab('codon')" id="tab-codon" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white transition-colors">Rare Codon</button>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 min-h-[400px]">
+        
+        <div id="content-primer" class="tool-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-700">Batch Primer Analysis</h2>
+                <div class="space-x-2">
+                    <button onclick="addPrimerRow()" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-sm font-medium transition">+ Add Row</button>
+                    <button onclick="calculatePrimers()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition shadow-sm">Calculate All</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left" id="primerTable">
+                    <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b">
+                        <tr>
+                            <th class="px-4 py-3 w-12">#</th>
+                            <th class="px-4 py-3 w-32">Name</th>
+                            <th class="px-4 py-3">Sequence (5'➝3')</th>
+                            <th class="px-4 py-3 w-24">Anneal (bp)</th>
+                            <th class="px-4 py-3">Analysis</th>
+                            <th class="px-4 py-3 w-10"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        </tbody>
+                </table>
+            </div>
+            <p class="mt-4 text-xs text-gray-400 text-center">*Tm calculated using salt-adjusted formula for the annealing portion only.</p>
+        </div>
+
+        <div id="content-protein" class="tool-content hidden">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">ESM3 Protein Masking</h2>
+            <textarea id="protInput" class="w-full p-3 border border-gray-200 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-300 outline-none transition" rows="3" placeholder="Paste protein sequence here..."></textarea>
+            
+            <div class="mt-3 flex justify-between items-center">
+                <button onclick="renderProtein()" class="px-4 py-2 bg-gray-800 text-white text-sm rounded-lg hover:bg-black transition">Load Sequence</button>
+                <span id="hoverPos" class="text-xs text-gray-500 font-mono">Pos: -</span>
+            </div>
+
+            <div id="protDisplay" class="mt-4 p-4 border border-gray-100 bg-gray-50 rounded-lg min-h-[150px] font-mono text-lg break-words leading-loose text-gray-600">
+                <span class="text-gray-400 text-sm">Sequence will appear here. Click residues to mask.</span>
+            </div>
+
+            <div class="mt-4 flex items-center gap-3">
+                <button onclick="copyMasked()" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                    Copy for ESM3
+                </button>
+                <span id="copyMsg" class="text-green-600 text-sm font-medium hidden">Copied to clipboard!</span>
+            </div>
+        </div>
+
+        <div id="content-codon" class="tool-content hidden">
+            <h2 class="text-lg font-semibold text-gray-700 mb-4">E. coli Rare Codon Finder</h2>
+            <textarea id="dnaInput" class="w-full p-3 border border-gray-200 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-300 outline-none transition" rows="3" placeholder="Paste DNA coding sequence (ATG...)"></textarea>
+            
+            <button onclick="analyzeCodons()" class="mt-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition shadow-sm">Analyze</button>
+
+            <div id="codonResult" class="mt-4 p-4 border border-gray-100 bg-gray-50 rounded-lg min-h-[150px] font-mono break-all leading-loose">
+                <span class="text-gray-400 text-sm">Result will appear here.</span>
+            </div>
+            
+            <div class="mt-4 flex gap-4 text-xs text-gray-500">
+                <div class="flex items-center gap-1"><span class="w-3 h-3 bg-red-500 rounded-sm block"></span> Rare (<10‰)</div>
+                <div class="flex items-center gap-1"><span class="w-3 h-3 bg-green-600 rounded-sm block"></span> Optimal</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // --- UI LOGIC ---
+    function switchTab(tabId) {
+        // Hide all contents
+        document.querySelectorAll('.tool-content').forEach(el => el.classList.add('hidden'));
+        // Show selected
+        document.getElementById('content-' + tabId).classList.remove('hidden');
+        
+        // Reset tab styles
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-white transition-colors';
+        });
+        // Highlight active tab
+        const activeBtn = document.getElementById('tab-' + tabId);
+        activeBtn.className = 'tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-white shadow-sm text-blue-600 border border-blue-100';
+    }
+
+    // --- PRIMER TOOL ---
+    function addPrimerRow() {
+        const tbody = document.querySelector('#primerTable tbody');
+        const count = tbody.querySelectorAll('tr').length + 1;
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-gray-50 transition";
+        tr.innerHTML = `
+            <td class="px-4 py-3 text-gray-400">${count}</td>
+            <td class="px-4 py-3"><input type="text" class="w-full bg-transparent border-b border-gray-200 focus:border-blue-400 outline-none text-sm py-1" placeholder="Primer_${count}"></td>
+            <td class="px-4 py-3"><input type="text" class="w-full bg-transparent border-b border-gray-200 focus:border-blue-400 outline-none font-mono text-sm py-1 seq-input" placeholder="ATGC..."></td>
+            <td class="px-4 py-3"><input type="number" class="w-16 bg-transparent border-b border-gray-200 focus:border-blue-400 outline-none text-sm py-1 text-center" value="20"></td>
+            <td class="px-4 py-3 result-box text-xs text-gray-400">-</td>
+            <td class="px-4 py-3 text-center"><button onclick="this.closest('tr').remove()" class="text-gray-300 hover:text-red-500 transition">×</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+    
+    // Init with 1 row
+    addPrimerRow();
+
+    function calculatePrimers() {
+        document.querySelectorAll('#primerTable tbody tr').forEach(row => {
+            const inputs = row.querySelectorAll('input');
+            const fullSeq = inputs[1].value.toUpperCase().replace(/[^ATGC]/g, '');
+            const annealLen = parseInt(inputs[2].value) || 20;
+            const resBox = row.querySelector('.result-box');
+
+            if(!fullSeq) return;
+
+            // Calculations
+            const annealSeq = fullSeq.slice(-annealLen);
+            
+            // Tm (Salt Adjusted)
+            const G = (annealSeq.match(/G/g)||[]).length;
+            const C = (annealSeq.match(/C/g)||[]).length;
+            const tm = (64.9 + 41 * (G + C - 16.4) / annealSeq.length).toFixed(1);
+
+            // GC Full
+            const gcFull = (((fullSeq.match(/[GC]/g)||[]).length / fullSeq.length) * 100).toFixed(1);
+
+            // Simple Hairpin Risk (Ends complementarity)
+            let risk = "Low";
+            const end5 = fullSeq.slice(0, 5);
+            const end3 = fullSeq.slice(-5);
+            // Reverse complement of 3' end
+            const rcEnd3 = end3.split('').reverse().map(b => ({'A':'T','T':'A','G':'C','C':'G'}[b])).join('');
+            if (fullSeq.includes(rcEnd3) && fullSeq.indexOf(rcEnd3) !== fullSeq.length - 5) risk = "Check";
+
+            resBox.innerHTML = `
+                <div class="flex gap-4">
+                    <div><span class="font-bold text-blue-600">${tm}°C</span> <span class="text-gray-400">(Tm)</span></div>
+                    <div>${gcFull}% GC</div>
+                    <div class="${risk === 'Check' ? 'text-amber-500' : 'text-green-500'}">${risk === 'Check' ? '⚠️ Risk' : '✓ OK'}</div>
+                </div>
+            `;
+        });
+    }
+
+    // --- PROTEIN MASKING ---
+    function renderProtein() {
+        const raw = document.getElementById('protInput').value.replace(/\s/g, '').toUpperCase();
+        const display = document.getElementById('protDisplay');
+        display.innerHTML = '';
+        
+        raw.split('').forEach((aa, i) => {
+            const span = document.createElement('span');
+            span.className = 'residue';
+            span.innerText = aa;
+            span.onclick = () => span.classList.toggle('masked');
+            span.onmouseover = () => document.getElementById('hoverPos').innerText = `Pos: ${i+1} (${aa})`;
+            display.appendChild(span);
+        });
+    }
+
+    function copyMasked() {
+        let seq = "";
+        document.querySelectorAll('.residue').forEach(sp => {
+            seq += sp.classList.contains('masked') ? "_" : sp.innerText;
+        });
+        navigator.clipboard.writeText(seq);
+        document.getElementById('copyMsg').classList.remove('hidden');
+        setTimeout(() => document.getElementById('copyMsg').classList.add('hidden'), 2000);
+    }
+
+    // --- CODON ---
+    const eColiRare = ['AGG','AGA','CGA','CGG','CTA','ATA','CCC','TCT']; // Simplified rare list for demo (cutoff <10)
+    // Full Kazusa data map needed for accurate tooltip freq, using simplified logic for minimal code
+    const codonFreq = {
+        'AGG':1.2, 'AGA':2.1, 'CGA':3.6, 'CGG':5.4, 'CTA':3.9, 'ATA':4.5, 'TGA':0.9, 'TAG':0.2
+        // ... (can add full map here if needed)
+    };
+
+    function analyzeCodons() {
+        const dna = document.getElementById('dnaInput').value.replace(/[^ATGC]/gi, '').toUpperCase();
+        const div = document.getElementById('codonResult');
+        let html = "";
+        
+        for(let i=0; i<dna.length; i+=3) {
+            let codon = dna.substr(i, 3);
+            if(codon.length<3) break;
+            
+            // Check if rare (freq < 10 or in rare list)
+            let isRare = codonFreq[codon] < 10 || eColiRare.includes(codon);
+            let color = isRare ? "text-red-500 font-bold" : "text-green-600 opacity-80";
+            
+            html += `<span class="tooltip ${color} mr-1">
+                        ${codon}
+                        <span class="tooltiptext">Freq: ${codonFreq[codon] || '>10'}‰</span>
+                     </span>`;
+        }
+        div.innerHTML = html || "<span class='text-gray-400'>No valid sequence found.</span>";
+    }
+</script>
+</body>
+</html>
