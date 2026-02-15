@@ -3,277 +3,397 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pa1oLAB Workbench V16 </title>
+    <title>Pa1oLAB Workbench ୧ʕ•̀ᴥ•́ʔ୨ </title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
+        body { font-family: 'Roboto Mono', JetBrains Mono; background-color: #f8fafc; color: #334155; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        /* Helpers */
-        .c-A { color: #16a34a; font-weight: bold; }
-        .c-T { color: #dc2626; font-weight: bold; }
-        .c-G { color: #d97706; font-weight: bold; }
-        .c-C { color: #2563eb; font-weight: bold; }
+        /* NAV */
+        .nav-btn { padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+        .nav-active { background: #4f46e5; color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
+        .nav-inactive { background: white; color: #4f46e5; border-color: #e2e8f0; }
+        .nav-inactive:hover { background: #f1f5f9; color: #334155; }
 
-        /* Tabs */
-        .tab-btn { transition: all 0.2s; }
-        .tab-active { background-color: #4f46e5; color: white; box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3); }
-        .tab-inactive { background-color: white; color: #64748b; border: 1px solid #e2e8f0; }
-
-        /* Masking & Codon Styles */
-        .residue-box { width: 24px; margin: 2px; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-        .residue-char { 
-            font-size: 1rem; font-weight: 700; width: 100%; text-align: center; border-radius: 4px; 
-            background: #e2e8f0; color: #334155; transition: transform 0.1s;
+        /* ALIGNMENT STYLE */
+        .aln-container { font-family: 'Roboto Mono', monospace; font-size: 13px; line-height: 1.8; white-space: pre; overflow-x: auto; padding-bottom: 10px; }
+        .aln-block { margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; min-width: max-content; }
+        .aln-row { display: flex; align-items: center; }
+        .aln-name { width: 100px; flex-shrink: 0; text-align: right; padding-right: 15px; font-weight: bold; color: #4f46e5; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        
+        /* Centered Residue Box */
+        .res-box { 
+            width: 16px; height: 26px; 
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: crosshair; transition: all 0.05s;
         }
-        .residue-char:hover { transform: scale(1.1); z-index: 10; }
-        .residue-char.masked { background-color: #ef4444; color: white; opacity: 0.5; }
-        .residue-num { font-size: 0.6rem; color: #94a3b8; margin-top: 2px; }
-
-        /* Codon Grid */
-        .codon-grid { display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; }
-        .codon-box { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            width: 38px; height: 52px; background: white; border: 1px solid #e2e8f0; border-radius: 6px;
+        .res-box:hover {
+            background-color: #f59e0b; color: white !important; font-weight: bold;
+            transform: scale(1.3); border-radius: 2px; z-index: 50; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        .codon-box.is-rare { background-color: #fee2e2; border-color: #fca5a5; }
-        .codon-box.is-rare .cb-seq { color: #b91c1c; font-weight: bold; }
-        .cb-aa { font-size: 10px; font-weight: bold; color: #64748b; line-height: 1; margin-bottom: 2px; }
-        .cb-seq { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #334155; line-height: 1; }
-        .cb-pos { font-size: 9px; color: #94a3b8; margin-top: 2px; line-height: 1; }
-        .is-rare .cb-aa { color: #ef4444; } .is-rare .cb-pos { color: #f87171; }
+        .c-mut { background-color: #fee2e2; color: #dc2626; }
+        .c-match { color: #cbd5e1; }
+        .c-gap { color: #94a3b8; }
+        .seq-ref .res-box { font-weight: bold; color: #0f172a; border-bottom: 1px dashed #e2e8f0; }
+
+        /* STATUS BAR */
+        .status-bar {
+            position: sticky; top: 0; z-index: 40;
+            background: #1e293b; color: #fbbf24;
+            padding: 8px 16px; border-radius: 8px;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 12px; font-weight: bold;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px;
+        }
+
+        /* MASKING STYLE */
+        .mask-grid-box { 
+            width: 34px; height: 40px; 
+            border: 1px solid #e2e8f0; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            cursor: pointer; background: white; border-radius: 4px; transition: 0.1s; 
+        }
+        .mask-grid-box:hover { border-color: #3b82f6; transform: translateY(-1px); }
+        .mask-grid-box.active { background-color: #ef4444; border-color: #dc2626; color: white; }
+
+        .mask-visual-container { height: 320px; display: flex; flex-direction: column; background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+        .mask-list-scroll { flex: 1; overflow-y: auto; padding: 0; }
+        
+        .list-card { padding: 6px 12px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; font-size: 12px; height: 40px; }
+        .list-card:hover { background-color: #f0f9ff; }
+        
+        .btn-copy-ready {
+            background-color: #e2e8f0; color: #475569;
+            padding: 4px 12px; border-radius: 4px; font-weight: bold; font-size: 10px;
+            border: 1px solid #cbd5e1; cursor: pointer; transition: 0.1s;
+        }
+        .btn-copy-ready:hover { background-color: #cbd5e1; color: #1e293b; }
+        .btn-copy-ready:active { transform: scale(0.95); }
+
+        /* CODON STYLE */
+        .codon-card { border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px; text-align: center; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .codon-rare { background: #fff1f2; border-color: #fda4af; }
     </style>
 </head>
 <body class="p-4 md:p-8 max-w-7xl mx-auto min-h-screen">
 
-    <header class="mb-6 border-b border-slate-200 pb-4">
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                    🧬 Pa1oLAB Workbench <span class="text-xs bg-indigo-600 text-white px-2 py-1 rounded">v16.0</span>
-                </h1>
-                <p class="text-slate-500 text-sm">©watta17s for NH lab</p>
-            </div>
-            <nav class="flex gap-2">
-                <button onclick="switchTab('primer')" id="btn-primer" class="tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-bold">Primer</button>
-                <button onclick="switchTab('protein')" id="btn-protein" class="tab-btn tab-active px-6 py-2 rounded-lg text-sm font-bold">Masking Suite</button>
-                <button onclick="switchTab('codon')" id="btn-codon" class="tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-bold">Rare Codon</button>
-            </nav>
+    <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                🧬 Pa1oLAB Workbench ୧ʕ•̀ᴥ•́ʔ୨ 🐻‍❄️ <span class="text-xs bg-indigo-600 text-white px-2 py-1 rounded">V36.0</span>
+            </h1>
+            <p class="text-slate-500 text-sm">©watta17s for NH lab</p>
         </div>
+        <nav class="flex gap-2">
+            <button onclick="switchTab('align')" id="btn-align" class="nav-btn nav-active">Alignment</button>
+            <button onclick="switchTab('mask')" id="btn-mask" class="nav-btn nav-inactive">Masking</button>
+            <button onclick="switchTab('codon')" id="btn-codon" class="nav-btn nav-inactive">Rare Codon</button>
+        </nav>
     </header>
 
-    <main id="content-primer" class="tool-content hidden">
-         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col items-center justify-center text-slate-400 italic">
-            (Primer Design Module - Coming Soon!)
-         </div>
-    </main>
-
-    <main id="content-protein" class="tool-content">
+    <main id="view-align" class="tool-view">
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 class="text-xl font-bold text-slate-800 mb-4">🎭 Protein Masking Suite for ESM3</h2>
             
-            <div class="mb-6">
-                <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Input Sequence (AA)</label>
-                <input id="protSeq" type="text" class="w-full p-3 border border-slate-300 rounded text-sm font-mono uppercase focus:ring-2 focus:ring-indigo-500" 
-                    placeholder="PASTE SEQUENCE HERE (e.g. MKTIIALSYIFCLVFADYKDDDDK)" 
-                    oninput="this.value=this.value.replace(/[^a-zA-Z]/g,'').toUpperCase()">
+            <div class="status-bar" id="alignStatus">
+                <div class="flex items-center gap-4">
+                    <span>🖱️ Residue...</span>
+                </div>
+                <span class="text-slate-400 font-normal text-[10px] uppercase">Ref Length: <span id="seqLen" class="text-white">0</span></span>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                
-                <div class="border border-indigo-100 bg-indigo-50/50 p-3 rounded-lg flex flex-col">
-                    <h3 class="text-xs font-bold text-indigo-900 mb-2 uppercase">📍 Sliding Window</h3>
-                    <div class="flex gap-1 mb-2">
-                        <input type="number" id="slideSize" placeholder="Size" value="3" class="w-1/2 p-1 text-xs border rounded">
-                        <input type="number" id="slideStep" placeholder="Step" value="1" class="w-1/2 p-1 text-xs border rounded">
-                    </div>
-                    <button onclick="genSliding()" class="mt-auto w-full py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded">Scan (Mask Block)</button>
-                </div>
-
-                <div class="border border-purple-100 bg-purple-50/50 p-3 rounded-lg flex flex-col">
-                    <h3 class="text-xs font-bold text-purple-900 mb-2 uppercase">🔦 Inverse</h3>
-                    <div class="flex gap-1 mb-2">
-                        <input type="number" id="invSize" placeholder="Keep Size" value="5" class="w-full p-1 text-xs border rounded">
-                    </div>
-                    <button onclick="genInverse()" class="mt-auto w-full py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded">Scan (Keep Block)</button>
-                </div>
-
-                <div class="border border-slate-200 bg-slate-50 p-3 rounded-lg flex flex-col gap-2">
-                    <div>
-                        <h3 class="text-xs font-bold text-slate-700 mb-1 uppercase">⚡ Periodic / Target</h3>
-                        <div class="flex gap-1">
-                            <input type="number" id="periodN" placeholder="Every N" value="2" class="w-1/2 p-1 text-xs border rounded">
-                            <button onclick="genPeriodic()" class="flex-1 py-1 bg-slate-700 text-white text-[10px] font-bold rounded">Zipper</button>
-                        </div>
-                    </div>
-                    <div class="flex gap-1">
-                        <input type="text" id="targetRes" placeholder="e.g. C,K" class="w-1/2 p-1 text-xs border rounded uppercase">
-                        <button onclick="genTarget()" class="flex-1 py-1 bg-slate-700 text-white text-[10px] font-bold rounded">Mask AA</button>
-                    </div>
-                </div>
-
-                <div class="border border-slate-200 bg-slate-50 p-3 rounded-lg flex flex-col gap-2">
-                    <div>
-                        <h3 class="text-xs font-bold text-slate-700 mb-1 uppercase">🎲 Random / Manual</h3>
-                        <div class="flex gap-1">
-                            <input type="number" id="randN" placeholder="# Count" value="3" class="w-1/2 p-1 text-xs border rounded">
-                            <button onclick="genRandom()" class="flex-1 py-1 bg-orange-600 text-white text-[10px] font-bold rounded">Random</button>
-                        </div>
-                    </div>
-                    <button onclick="addWorkspace()" class="mt-auto w-full py-1 bg-slate-400 hover:bg-slate-500 text-white text-xs font-bold rounded">Open Clicker</button>
-                </div>
-            </div>
-
-            <div id="genOutputArea" class="hidden">
-                <div class="flex justify-between items-center mb-2">
-                    <h3 class="text-sm font-bold text-slate-700">Results (<span id="genCount">0</span>)</h3>
-                    <button onclick="copyAllVariants()" id="btnCopyAll" class="text-xs bg-green-600 text-white px-3 py-1.5 rounded font-bold hover:bg-green-700 shadow-sm">Copy All</button>
-                </div>
-                <div id="genList" class="max-h-64 overflow-y-auto space-y-1 bg-slate-50 p-4 rounded-lg border border-slate-200 font-mono text-xs"></div>
-                <button onclick="document.getElementById('genOutputArea').classList.add('hidden')" class="mt-2 text-xs text-red-400 underline w-full text-center">Clear Results</button>
-            </div>
-
-            <div id="maskContainer" class="space-y-6 mt-6"></div>
+            <textarea id="alnInput" class="w-full h-32 p-3 border border-slate-300 rounded font-mono text-xs uppercase mb-4 mt-4 focus:ring-2 focus:ring-blue-500 outline-none" 
+placeholder=">Reference_Seq
+MKTIIALSYIFCLVFADYKSLG...
+>Mutant_Example
+MKTIIAL.......FADYK..."></textarea>
+            
+            <button type="button" onclick="runAlign()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded text-sm font-bold shadow transition active:scale-95 w-40">
+                Align!
+            </button>
+            
+            <div id="alnOutput" class="mt-6"></div>
         </div>
     </main>
 
-    <main id="content-codon" class="tool-content hidden">
-         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 class="text-xl font-bold text-slate-800 mb-2">🦠 Rare Codon Map</h2>
-            <textarea id="codonInput" class="w-full p-3 border border-slate-200 rounded font-mono text-sm mb-4 h-24" placeholder="Paste DNA..." oninput="analyzeCodons()"></textarea>
-            <div class="p-6 bg-slate-50 border border-slate-200 rounded-lg shadow-inner min-h-[150px]">
-                <div id="codonVisual" class="codon-grid"></div>
+    <main id="view-mask" class="tool-view hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <h2 class="text-lg font-bold text-slate-800 mb-4">🎭 Masking Generator</h2>
+
+            <div class="mb-6">
+                <input id="maskSeq" type="text" class="w-full p-2 border border-slate-300 rounded font-mono uppercase text-sm mb-2 focus:outline-none focus:border-blue-500" placeholder="Paste Protein Sequence..." oninput="renderGrid()">
+                <div id="gridContainer" class="flex flex-wrap gap-1 p-3 bg-slate-50 border rounded max-h-48 overflow-y-auto justify-center">
+                    <span class="text-xs text-slate-400 m-auto">Sequence Grid Preview</span>
+                </div>
+                <div class="flex gap-2 mt-2">
+                    <button onclick="addCurrentSelection()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs px-4 py-2 rounded font-bold">Add Selected</button>
+                    <button onclick="clearGrid()" class="text-red-500 text-xs hover:underline ml-auto self-center">Clear Selection</button>
+                </div>
+            </div>
+
+            <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6 flex flex-wrap gap-4 items-center shadow-sm">
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-bold text-indigo-900">Sliding Generator:</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Window Size</label>
+                    <input id="winSize" value="3" class="w-12 text-center text-sm p-1 border border-indigo-200 rounded text-indigo-900 font-bold focus:ring-1 focus:ring-indigo-500 outline-none">
+                </div>
+                <div class="flex items-center gap-2">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Sliding Step</label>
+                    <input id="stepSize" value="1" class="w-12 text-center text-sm p-1 border border-indigo-200 rounded text-indigo-900 font-bold focus:ring-1 focus:ring-indigo-500 outline-none">
+                </div>
+                <button onclick="runAutoScan()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2 rounded font-bold ml-auto shadow-sm transition">Generate Lib</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex flex-col h-[320px]">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-xs font-bold text-slate-500">Plain Text Output</label>
+                        <button onclick="copyRaw()" id="btnCopyRaw" class="text-xs text-green-600 font-bold hover:underline">Copy All</button>
+                    </div>
+                    <textarea id="maskRaw" class="flex-1 p-3 border border-slate-200 rounded font-mono text-xs resize-none bg-slate-50 focus:outline-none" readonly></textarea>
+                </div>
+
+                <div class="flex flex-col h-[320px]">
+                    <div class="flex justify-between mb-1">
+                        <label class="text-xs font-bold text-slate-500">Library List (<span id="libCount">0</span>)</label>
+                        <button onclick="clearList()" class="text-xs text-red-400 font-bold hover:text-red-600">Clear All</button>
+                    </div>
+                    <div class="mask-visual-container">
+                        <div id="maskListScroll" class="mask-list-scroll">
+                            <div class="text-center text-slate-300 text-xs mt-10">Empty</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-codon" class="tool-view hidden">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-slate-800">🦠 Rare Codon Map</h2>
+                <span class="bg-yellow-300 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold border border-yellow-400">Ref: E. coli K12</span>
+            </div>
+            <textarea id="codonInput" class="w-full p-3 border border-slate-200 rounded font-mono text-sm uppercase h-24 mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400" placeholder="PASTE DNA SEQUENCE HERE..." oninput="analyzeCodons()"></textarea>
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                <div id="codonGrid" class="grid grid-cols-8 md:grid-cols-12 gap-2"></div>
             </div>
         </div>
     </main>
 
     <script>
-        // --- UTILS ---
-        function switchTab(t) {
-            document.querySelectorAll('.tool-content').forEach(e => e.classList.add('hidden'));
-            document.getElementById('content-'+t).classList.remove('hidden');
-            ['primer', 'protein', 'codon'].forEach(tab => {
-                const btn = document.getElementById('btn-'+tab);
-                btn.className = (tab === t) ? 'tab-btn tab-active px-6 py-2 rounded-lg text-sm font-bold' : 'tab-btn tab-inactive px-6 py-2 rounded-lg text-sm font-bold';
-            });
-        }
-        function getSeq() {
-            const s = document.getElementById('protSeq').value.trim();
-            if(!s) { alert("Please enter a protein sequence first!"); return null; }
-            return s;
-        }
-        let generatedVariants = [];
-        function displayVariants(variants) {
-            generatedVariants = variants;
-            const listEl = document.getElementById('genList');
-            document.getElementById('genCount').innerText = variants.length;
-            listEl.innerHTML = variants.map((v,i) => `
-                <div class="flex items-center gap-2 bg-white p-1 rounded border border-slate-100 hover:border-indigo-300">
-                    <span class="text-slate-300 w-6 text-right select-none">${i+1}.</span>
-                    <div class="break-all flex-1 text-slate-700">${v}</div>
-                </div>`).join('');
-            document.getElementById('genOutputArea').classList.remove('hidden');
-        }
-        function copyAllVariants() {
-            navigator.clipboard.writeText(generatedVariants.join("\n")).then(() => {
-                const btn = document.getElementById('btnCopyAll'); btn.innerText = "✅ Done"; setTimeout(()=>btn.innerText="Copy All", 1000);
+        let libraryList = [];
+        
+        window.switchTab = function(id) {
+            document.querySelectorAll('.tool-view').forEach(e => e.classList.add('hidden'));
+            document.getElementById('view-'+id).classList.remove('hidden');
+            ['align','mask','codon'].forEach(k => {
+                document.getElementById('btn-'+k).className = (k===id) ? 'nav-btn nav-active' : 'nav-btn nav-inactive';
             });
         }
 
-        // --- MASKING LOGIC ---
-
-        // 1. Sliding Window (Mask Block)
-        function genSliding() {
-            const seq = getSeq(); if(!seq) return;
-            const size = parseInt(document.getElementById('slideSize').value) || 3;
-            const step = parseInt(document.getElementById('slideStep').value) || 1;
-            let res = [];
-            for (let i = 0; i <= seq.length - size; i += step) {
-                res.push(seq.substring(0, i) + "_".repeat(size) + seq.substring(i + size));
+        // --- 1. ALIGNMENT (FIXED: ATOMIC UPDATE) ---
+        window.runAlign = function() {
+            // 1. Get Input
+            const raw = document.getElementById('alnInput').value;
+            
+            // 2. Validate Input (Alert user if empty instead of just clearing output)
+            if(!raw || !raw.trim()) {
+                alert("⚠️ Please enter sequence data first.");
+                return; // Stop here. Do NOT clear the existing output.
             }
-            displayVariants(res);
-        }
 
-        // 2. Inverse Window (Keep Block, Mask Rest)
-        function genInverse() {
-            const seq = getSeq(); if(!seq) return;
-            const size = parseInt(document.getElementById('invSize').value) || 5;
-            let res = [];
-            // Step is always 1 for detailed scan
-            for (let i = 0; i <= seq.length - size; i++) {
-                const prefixMask = "_".repeat(i);
-                const keptBlock = seq.substring(i, i + size);
-                const suffixMask = "_".repeat(seq.length - (i + size));
-                res.push(prefixMask + keptBlock + suffixMask);
+            // 3. Prepare Variables (Local Scope)
+            const lines = raw.split('\n');
+            let seqs = []; 
+            let curr = {n:'', s:''};
+            
+            // 4. Parse
+            lines.forEach(l => {
+                l = l.trim();
+                if(l.startsWith('>')) { 
+                    if(curr.n || curr.s) seqs.push(curr); 
+                    curr={n:l.substring(1),s:''}; 
+                } else {
+                    if(!curr.n) curr.n = "Input_Seq"; 
+                    curr.s += l.replace(/[^A-Za-z\-\.]/g,'').toUpperCase();
+                }
+            });
+            if(curr.n || curr.s) seqs.push(curr);
+            
+            if(seqs.length === 0) {
+                alert("No valid sequences found.");
+                return;
             }
-            displayVariants(res);
-        }
 
-        // 3. Periodic (Zipper)
-        function genPeriodic() {
-            const seq = getSeq(); if(!seq) return;
-            const n = parseInt(document.getElementById('periodN').value) || 2;
-            let s = ""; for(let i=0;i<seq.length;i++) s += ((i+1)%n===0) ? "_" : seq[i];
-            displayVariants([s]);
-        }
+            // 5. Generate HTML (In Memory ONLY)
+            const ref = seqs[0];
+            const width = 100; 
+            let newHTML = `<div class="aln-container">`;
 
-        // 4. Target Residue
-        function genTarget() {
-            const seq = getSeq(); if(!seq) return;
-            const targets = document.getElementById('targetRes').value.toUpperCase().replace(/[^A-Z]/g,'').split('');
-            if(targets.length === 0) return alert("Enter residue code (e.g. C, K)");
-            let s = seq.split('').map(c => targets.includes(c) ? "_" : c).join('');
-            displayVariants([s]);
-        }
+            for(let i=0; i < ref.s.length; i += width) {
+                newHTML += `<div class="aln-block">`;
+                
+                // Ref Row
+                let chunkRef = ref.s.substr(i, width);
+                let refHtml = "";
+                for(let k=0; k<chunkRef.length; k++) {
+                    let pos = i + k + 1;
+                    let aa = chunkRef[k];
+                    refHtml += `<span class="res-box" onmouseenter="showStat(${pos}, '${aa}', 'Ref')">${aa}</span>`;
+                }
 
-        // 5. Random
-        function genRandom() {
-            const seq = getSeq(); if(!seq) return;
-            const n = parseInt(document.getElementById('randN').value) || 3;
-            let arr = seq.split('');
-            let indices = Array.from({length: seq.length}, (_, i) => i);
-            // Shuffle indices
-            for (let i = indices.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [indices[i], indices[j]] = [indices[j], indices[i]];
+                newHTML += `<div class="aln-row">
+                            <div class="aln-name" title="${ref.n}">Ref</div>
+                            <div class="aln-seq seq-ref">${refHtml}</div>
+                         </div>`;
+
+                // Mutant Rows
+                for(let m=1; m<seqs.length; m++) {
+                    let sObj = seqs[m];
+                    let chunkMut = sObj.s.substr(i, width);
+                    let vis = "";
+                    for(let k=0; k<chunkMut.length; k++) {
+                        let pos = i + k + 1;
+                        let mc = chunkMut[k] || '';
+                        let rc = chunkRef[k] || ''; 
+                        let cssClass = "", text = "";
+
+                        if(mc===rc && mc!=='-') { cssClass="c-match"; text="."; }
+                        else if(mc==='-') { cssClass="c-gap"; text="-"; }
+                        else { cssClass="c-mut"; text=mc; }
+
+                        vis += `<span class="res-box ${cssClass}" onmouseenter="showStat(${pos}, '${mc}', '${sObj.n}')">${text}</span>`;
+                    }
+                    newHTML += `<div class="aln-row">
+                                <div class="aln-name" title="${sObj.n}">${sObj.n.substring(0,10)}</div>
+                                <div class="aln-seq">${vis}</div>
+                             </div>`;
+                }
+                newHTML += `</div>`;
             }
-            // Mask first N indices
-            for(let i=0; i<n && i<indices.length; i++) arr[indices[i]] = "_";
-            displayVariants([arr.join('')]);
+            newHTML += `</div>`;
+
+            // 6. SWAP (Atomic Update)
+            // Only now do we touch the DOM. This prevents flickering or empty states.
+            document.getElementById('seqLen').innerText = ref.s.length;
+            document.getElementById('alnOutput').innerHTML = newHTML;
         }
 
-        // 6. Manual Clicker
-        function addWorkspace() {
-            const seq = getSeq(); if(!seq) return;
-            const id = `ws-${Date.now()}`;
-            let h = `<div class="bg-white border border-slate-200 shadow-sm rounded-lg p-4 relative" id="${id}">
-                <button onclick="document.getElementById('${id}').remove()" class="absolute top-2 right-2 text-red-300 hover:text-red-500">×</button>
-                <div class="flex flex-wrap gap-1 mt-4">`;
-            seq.split('').forEach((c,i)=>h+=`<div class="residue-box" onclick="this.querySelector('.residue-char').classList.toggle('masked')"><div class="residue-char">${c}</div><div class="residue-num">${i+1}</div></div>`);
-            document.getElementById('maskContainer').insertAdjacentHTML('afterbegin', h+`</div><div class="mt-2 text-right"><button onclick="copyMasked('${id}')" id="btn-${id}" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded">Copy Pattern</button></div></div>`);
-        }
-        function copyMasked(id) {
-            let s = ""; document.getElementById(id).querySelectorAll('.residue-box').forEach(b => s += b.querySelector('.masked') ? "_" : b.innerText.split('\n')[0]);
-            navigator.clipboard.writeText(s).then(()=>{ const btn=document.getElementById('btn-'+id); btn.innerText="Copied!"; setTimeout(()=>btn.innerText="Copy Pattern",1000);});
+        window.showStat = function(pos, aa, name) {
+            const bar = document.getElementById('alignStatus');
+            let displayAA = aa === '.' ? 'Match' : aa;
+            bar.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <span class="bg-indigo-600 text-white px-2 py-1 rounded text-xs">POS: ${pos}</span>
+                    <span class="text-white">RESIDUE: <span class="text-yellow-400 text-lg font-bold">${displayAA}</span></span>
+                    <span class="text-slate-400 text-xs border-l border-slate-600 pl-4">Seq: ${name}</span>
+                </div>
+            `;
         }
 
-        // --- RARE CODON LOGIC (Stable) ---
-        function analyzeCodons() {
+        // --- 2. MASKING ---
+        window.renderGrid = function() {
+            const seq = document.getElementById('maskSeq').value.trim().toUpperCase();
+            const container = document.getElementById('gridContainer');
+            if(!seq) { container.innerHTML = `<span class="text-xs text-slate-400 m-auto">Enter sequence to see grid</span>`; return; }
+            let h = "";
+            for(let i=0; i<seq.length; i++) {
+                h += `<div class="mask-grid-box" id="mb-${i}" onclick="toggleBox(${i})">
+                    <span class="text-xs font-bold text-slate-600">${seq[i]}</span>
+                    <span class="text-[8px] text-slate-300">${i+1}</span>
+                </div>`;
+            }
+            container.innerHTML = h;
+        }
+        window.toggleBox = function(i) { document.getElementById(`mb-${i}`).classList.toggle('active'); }
+        window.clearGrid = function() { document.querySelectorAll('.mask-grid-box').forEach(b => b.classList.remove('active')); }
+
+        window.addCurrentSelection = function() {
+            const seq = document.getElementById('maskSeq').value.trim().toUpperCase();
+            if(!seq) return;
+            let m = "", has=false;
+            for(let i=0; i<seq.length; i++) {
+                const b = document.getElementById(`mb-${i}`);
+                if(b && b.classList.contains('active')) { m+="_"; has=true; } else m+=seq[i];
+            }
+            if(has) { if(!libraryList.includes(m)) libraryList.push(m); updateList(); }
+        }
+
+        window.runAutoScan = function() {
+            const seq = document.getElementById('maskSeq').value.trim().toUpperCase();
+            if(!seq) return;
+            const w = parseInt(document.getElementById('winSize').value)||3;
+            const s = parseInt(document.getElementById('stepSize').value)||1;
+            for(let i=0; i<=seq.length-w; i+=s) {
+                let v = seq.substring(0,i) + "_".repeat(w) + seq.substring(i+w);
+                if(!libraryList.includes(v)) libraryList.push(v);
+            }
+            updateList();
+        }
+
+        window.updateList = function() {
+            document.getElementById('maskRaw').value = libraryList.join('\n');
+            document.getElementById('libCount').innerText = libraryList.length;
+            const con = document.getElementById('maskListScroll');
+            if(libraryList.length===0) { con.innerHTML=`<div class="text-center text-slate-300 text-xs mt-10">Empty</div>`; return; }
+            let h = "";
+            libraryList.forEach((seq, idx) => {
+                h += `<div class="list-card">
+                    <div class="flex items-center gap-2 overflow-hidden">
+                        <span class="text-slate-400 w-5 text-right font-mono">${idx+1}.</span>
+                        <span class="text-slate-700 font-mono font-bold tracking-wider truncate">${seq}</span>
+                    </div>
+                    <button onclick="copyByIndex(${idx}, this)" class="btn-copy-ready">Copy</button>
+                </div>`;
+            });
+            con.innerHTML = h;
+        }
+
+        window.copyByIndex = function(idx, btn) {
+            const txt = libraryList[idx];
+            navigator.clipboard.writeText(txt);
+            btn.innerText = "Copied!";
+            btn.style.backgroundColor = "#22c55e"; 
+            btn.style.color = "white";
+            setTimeout(()=>{ 
+                btn.innerText = "Copy"; 
+                btn.style.backgroundColor = ""; 
+                btn.style.color = ""; 
+            }, 1000);
+        }
+
+        window.clearList = function() { libraryList=[]; updateList(); }
+        window.copyRaw = function() {
+            document.getElementById('maskRaw').select();
+            document.execCommand('copy');
+            let b = document.getElementById('btnCopyRaw');
+            b.innerText="Copied!"; setTimeout(()=>b.innerText="Copy All",1000);
+        }
+
+        // --- 3. CODON ---
+        window.analyzeCodons = function() {
             const dna = document.getElementById('codonInput').value.toUpperCase().replace(/[^ATGC]/g,'');
-            const map={'TTT':'F','TTC':'F','TTA':'L','TTG':'L','CTT':'L','CTC':'L','CTA':'L','CTG':'L','ATT':'I','ATC':'I','ATA':'I','ATG':'M','GTT':'V','GTC':'V','GTA':'V','GTG':'V','TCT':'S','TCC':'S','TCA':'S','TCG':'S','CCT':'P','CCC':'P','CCA':'P','CCG':'P','ACT':'T','ACC':'T','ACA':'T','ACG':'T','GCT':'A','GCC':'A','GCA':'A','GCG':'A','TAT':'Y','TAC':'Y','TAA':'*','TAG':'*','CAT':'H','CAC':'H','CAA':'Q','CAG':'Q','AAT':'N','AAC':'N','AAA':'K','AAG':'K','GAT':'D','GAC':'D','GAA':'E','GAG':'E','TGT':'C','TGC':'C','TGA':'*','TGG':'W','CGT':'R','CGC':'R','CGA':'R','CGG':'R','AGT':'S','AGC':'S','AGA':'R','AGG':'R','GGT':'G','GGC':'G','GGA':'G','GGG':'G'};
-            const freq={'TTT':22.3,'TTC':16.5,'TTA':13.7,'TTG':13.6,'CTT':11.0,'CTC':11.1,'CTA':3.9,'CTG':52.9,'ATT':30.4,'ATC':25.0,'ATA':4.5,'ATG':27.7,'GTT':18.3,'GTC':15.2,'GTA':10.9,'GTG':26.3,'TCT':8.5,'TCC':8.6,'TCA':7.1,'TCG':8.9,'CCT':7.0,'CCC':5.5,'CCA':8.4,'CCG':23.2,'ACT':8.9,'ACC':23.4,'ACA':7.1,'ACG':14.4,'GCT':15.3,'GCC':25.5,'GCA':20.3,'GCG':33.7,'TAT':16.2,'TAC':12.2,'TAA':2.0,'TAG':0.2,'CAT':12.8,'CAC':9.7,'CAA':15.1,'CAG':29.0,'AAT':17.6,'AAC':21.6,'AAA':33.2,'AAG':13.3,'GAT':32.2,'GAC':19.1,'GAA':39.7,'GAG':17.8,'TGT':5.2,'TGC':6.4,'TGA':0.9,'TGG':15.3,'CGT':20.9,'CGC':22.0,'CGA':3.6,'CGG':5.4,'AGT':8.7,'AGC':16.0,'AGA':2.1,'AGG':1.2,'GGT':24.7,'GGC':29.6,'GGA':7.9,'GGG':11.0};
-            const max={}; Object.keys(map).forEach(c=>{ if(!max[map[c]] || freq[c]>max[map[c]]) max[map[c]]=freq[c]; });
-            let html = "";
-            for (let i = 0; i < dna.length; i += 3) {
-                const c = dna.substr(i, 3);
-                if(c.length < 3) break;
-                const aa = map[c] || '?';
-                const ratio = (freq[c]||0)/(max[aa]||1);
-                const isRare = ratio < 0.1;
-                html += `<div class="codon-box ${isRare ? 'is-rare' : ''}" title="${aa}"><div class="cb-aa">${aa}</div><div class="cb-seq">${c}</div><div class="cb-pos">${i+1}</div></div>`;
+            const map = {'TTT':'F','TTC':'F','TTA':'L','TTG':'L','CTT':'L','CTC':'L','CTA':'L','CTG':'L','ATT':'I','ATC':'I','ATA':'I','ATG':'M','GTT':'V','GTC':'V','GTA':'V','GTG':'V','TCT':'S','TCC':'S','TCA':'S','TCG':'S','CCT':'P','CCC':'P','CCA':'P','CCG':'P','ACT':'T','ACC':'T','ACA':'T','ACG':'T','GCT':'A','GCC':'A','GCA':'A','GCG':'A','TAT':'Y','TAC':'Y','TAA':'*','TAG':'*','CAT':'H','CAC':'H','CAA':'Q','CAG':'Q','AAT':'N','AAC':'N','AAA':'K','AAG':'K','GAT':'D','GAC':'D','GAA':'E','GAG':'E','TGT':'C','TGC':'C','TGA':'*','TGG':'W','CGT':'R','CGC':'R','CGA':'R','CGG':'R','AGT':'S','AGC':'S','AGA':'R','AGG':'R','GGT':'G','GGC':'G','GGA':'G','GGG':'G'};
+            const usage = {'TTT':22.3,'TTC':16.5,'TTA':13.7,'TTG':13.6,'CTT':11.0,'CTC':11.1,'CTA':3.9,'CTG':52.9,'ATT':30.4,'ATC':25.0,'ATA':4.5,'ATG':27.7,'GTT':18.3,'GTC':15.2,'GTA':10.9,'GTG':26.3,'TCT':8.5,'TCC':8.6,'TCA':7.1,'TCG':8.9,'CCT':7.0,'CCC':5.5,'CCA':8.4,'CCG':23.2,'ACT':8.9,'ACC':23.4,'ACA':7.1,'ACG':14.4,'GCT':15.3,'GCC':25.5,'GCA':20.3,'GCG':33.7,'TAT':16.2,'TAC':12.2,'TAA':2.0,'TAG':0.2,'CAT':12.8,'CAC':9.7,'CAA':15.1,'CAG':29.0,'AAT':17.6,'AAC':21.6,'AAA':33.2,'AAG':13.3,'GAT':32.2,'GAC':19.1,'GAA':39.7,'GAG':17.8,'TGT':5.2,'TGC':6.4,'TGA':0.9,'TGG':15.3,'CGT':20.9,'CGC':22.0,'CGA':3.6,'CGG':5.4,'AGT':8.7,'AGC':16.0,'AGA':2.1,'AGG':1.2,'GGT':24.7,'GGC':29.6,'GGA':7.9,'GGG':11.0};
+            
+            let maxF={}; for(let c in map) { let a=map[c]; if(!maxF[a] || usage[c]>maxF[a]) maxF[a]=usage[c]; }
+            let h = "";
+            for(let i=0; i<dna.length; i+=3) {
+                let c = dna.substr(i,3); if(c.length<3) break;
+                let aa = map[c]||'?';
+                let isRare = ((usage[c]||0)/(maxF[aa]||1)) < 0.10;
+                if(aa==='M'||aa==='W') isRare=false;
+                h += `<div class="codon-card ${isRare?'codon-rare':''}">
+                    <div class="text-[10px] font-bold text-slate-500">${aa}</div>
+                    <div class="text-xs font-mono text-slate-800">${c}</div>
+                    <div class="text-[8px] text-slate-300 mt-1">${i+1}</div>
+                </div>`;
             }
-            document.getElementById('codonVisual').innerHTML = html || '<span class="text-slate-400 italic text-xs w-full text-center mt-4">Paste sequence...</span>';
+            document.getElementById('codonGrid').innerHTML = h;
         }
     </script>
 </body>
