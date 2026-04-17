@@ -1,400 +1,818 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pa1oLAB Workbench ୧ʕ•̀ᴥ•́ʔ୨ </title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Roboto Mono', JetBrains Mono; background-color: #f8fafc; color: #334155; }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
+<meta charset="UTF-8">
+<title>Pa1oLAB Workbench ୧ʕ•̀ᴥ•́ʔ୨</title>
+<script src="https://cdn.tailwindcss.com"></script>
 
-        /* NAV */
-        .nav-btn { padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
-        .nav-active { background: #4f46e5; color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
-        .nav-inactive { background: white; color: #4f46e5; border-color: #e2e8f0; }
-        .nav-inactive:hover { background: #f1f5f9; color: #334155; }
+<style>
+body {
+  font-family: 'Inter', sans-serif;
+}
 
-        /* ALIGNMENT STYLE */
-        .aln-container { font-family: 'Roboto Mono', monospace; font-size: 13px; line-height: 1.8; white-space: pre; overflow-x: auto; padding-bottom: 10px; }
-        .aln-block { margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; border: 1px solid #cbd5e1; min-width: max-content; }
-        .aln-row { display: flex; align-items: center; }
-        .aln-name { width: 100px; flex-shrink: 0; text-align: right; padding-right: 15px; font-weight: bold; color: #4f46e5; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        
-        /* Centered Residue Box */
-        .res-box { 
-            width: 16px; height: 26px; 
-            display: inline-flex; align-items: center; justify-content: center;
-            cursor: crosshair; transition: all 0.05s;
-        }
-        .res-box:hover {
-            background-color: #f59e0b; color: white !important; font-weight: bold;
-            transform: scale(1.3); border-radius: 2px; z-index: 50; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .c-mut { background-color: #fee2e2; color: #dc2626; }
-        .c-match { color: #cbd5e1; }
-        .c-gap { color: #94a3b8; }
-        .seq-ref .res-box { font-weight: bold; color: #0f172a; border-bottom: 1px dashed #e2e8f0; }
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+.box{
+width:72px;
+min-height:96px;
+padding:6px 4px;
 
-        /* STATUS BAR */
-        .status-bar {
-            position: sticky; top: 0; z-index: 40;
-            background: #1e293b; color: #fbbf24;
-            padding: 8px 16px; border-radius: 8px;
-            font-family: 'Roboto Mono', monospace;
-            font-size: 12px; font-weight: bold;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 15px;
-        }
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:space-between;
 
-        /* MASKING STYLE */
-        .mask-grid-box { 
-            width: 34px; height: 40px; 
-            border: 1px solid #e2e8f0; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            cursor: pointer; background: white; border-radius: 4px; transition: 0.1s; 
-        }
-        .mask-grid-box:hover { border-color: #3b82f6; transform: translateY(-1px); }
-        .mask-grid-box.active { background-color: #ef4444; border-color: #dc2626; color: white; }
+border-radius:14px;
+line-height:1.1;
+}
+.box:hover{
+transform:translateY(-2px);
+transition:0.15s;
+}
+.mask-box{
+width:60px;
+height:76px;
+padding:4px;
 
-        .mask-visual-container { height: 320px; display: flex; flex-direction: column; background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-        .mask-list-scroll { flex: 1; overflow-y: auto; padding: 0; }
-        
-        .list-card { padding: 6px 12px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; font-size: 12px; height: 40px; }
-        .list-card:hover { background-color: #f0f9ff; }
-        
-        .btn-copy-ready {
-            background-color: #e2e8f0; color: #475569;
-            padding: 4px 12px; border-radius: 4px; font-weight: bold; font-size: 10px;
-            border: 1px solid #cbd5e1; cursor: pointer; transition: 0.1s;
-        }
-        .btn-copy-ready:hover { background-color: #cbd5e1; color: #1e293b; }
-        .btn-copy-ready:active { transform: scale(0.95); }
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
 
-        /* CODON STYLE */
-        .codon-card { border: 1px solid #e2e8f0; border-radius: 6px; padding: 4px; text-align: center; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .codon-rare { background: #fff1f2; border-color: #fda4af; }
-    </style>
+gap:4px;
+
+border-radius:14px;
+font-size:13px;
+}
+.tab{
+cursor:pointer;
+color:#555;
+transition:all 0.2s ease;
+}
+
+.tab.active{
+background:#4f46e5;
+color:white;
+box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+
+.tab:hover{
+color:black;
+}
+.org{
+padding:6px 16px;
+border-radius:10px;
+cursor:pointer;
+color:#555;
+font-size:14px;
+
+display:inline-flex;
+align-items:center;
+justify-content:center;
+
+white-space:nowrap;
+transition:all 0.15s ease;
+}
+
+.org:hover{
+background:#e5e7eb;
+}
+
+.org.active{
+background:white;
+color:black;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+font-weight:600;
+}
+#dropdown{position:fixed;z-index:9999}
+</style>
 </head>
-<body class="p-4 md:p-8 max-w-7xl mx-auto min-h-screen">
+ 
+ 
 
-    <header class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                🧬 Pa1oLAB Workbench ୧ʕ•̀ᴥ•́ʔ୨ 🐻‍❄️ <span class="text-xs bg-indigo-600 text-white px-2 py-1 rounded">V36.0</span>
-            </h1>
-            <p class="text-slate-500 text-sm">©watta17s for NH lab</p>
-        </div>
-        <nav class="flex gap-2">
-            <button onclick="switchTab('align')" id="btn-align" class="nav-btn nav-active">Alignment</button>
-            <button onclick="switchTab('mask')" id="btn-mask" class="nav-btn nav-inactive">Masking</button>
-            <button onclick="switchTab('codon')" id="btn-codon" class="nav-btn nav-inactive">Rare Codon</button>
-        </nav>
-    </header>
+<body class="bg-slate-100 p-6">
+  <!-- ✅ LOGIN -->
+  <div id="loginPage" class="min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-2xl shadow-md w-[320px]">
 
-    <main id="view-align" class="tool-view">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            
-            <div class="status-bar" id="alignStatus">
-                <div class="flex items-center gap-4">
-                    <span>🖱️ Residue...</span>
-                </div>
-                <span class="text-slate-400 font-normal text-[10px] uppercase">Ref Length: <span id="seqLen" class="text-white">0</span></span>
-            </div>
+      <div class="text-2xl font-semibold mb-4 text-center">🔐 Login</div>
 
-            <textarea id="alnInput" class="w-full h-32 p-3 border border-slate-300 rounded font-mono text-xs uppercase mb-4 mt-4 focus:ring-2 focus:ring-blue-500 outline-none" 
-placeholder=">Reference_Seq
-MKTIIALSYIFCLVFADYKSLG...
->Mutant_Example
-MKTIIAL.......FADYK..."></textarea>
-            
-            <button type="button" onclick="runAlign()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded text-sm font-bold shadow transition active:scale-95 w-40">
-                Align!
-            </button>
-            
-            <div id="alnOutput" class="mt-6"></div>
-        </div>
-    </main>
+      <input id="user" placeholder="Username" class="w-full p-3 border rounded mb-3">
+      <input id="pass" type="password" placeholder="Password" class="w-full p-3 border rounded mb-4">
 
-    <main id="view-mask" class="tool-view hidden">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <h2 class="text-lg font-bold text-slate-800 mb-4">🎭 Masking Generator</h2>
+      <button onclick="login()" class="w-full bg-indigo-600 text-white py-2 rounded-lg">
+        Enter Lab
+      </button>
 
-            <div class="mb-6">
-                <input id="maskSeq" type="text" class="w-full p-2 border border-slate-300 rounded font-mono uppercase text-sm mb-2 focus:outline-none focus:border-blue-500" placeholder="Paste Protein Sequence..." oninput="renderGrid()">
-                <div id="gridContainer" class="flex flex-wrap gap-1 p-3 bg-slate-50 border rounded max-h-48 overflow-y-auto justify-center">
-                    <span class="text-xs text-slate-400 m-auto">Sequence Grid Preview</span>
-                </div>
-                <div class="flex gap-2 mt-2">
-                    <button onclick="addCurrentSelection()" class="bg-slate-700 hover:bg-slate-800 text-white text-xs px-4 py-2 rounded font-bold">Add Selected</button>
-                    <button onclick="clearGrid()" class="text-red-500 text-xs hover:underline ml-auto self-center">Clear Selection</button>
-                </div>
-            </div>
+      <div id="err" class="text-red-500 text-sm mt-2 text-center hidden">
+        ใส่รหัสผิด อดเข้าไปดิ
+      </div>
 
-            <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6 flex flex-wrap gap-4 items-center shadow-sm">
-                <div class="flex items-center gap-2">
-                    <span class="text-sm font-bold text-indigo-900">Sliding Generator:</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Window Size</label>
-                    <input id="winSize" value="3" class="w-12 text-center text-sm p-1 border border-indigo-200 rounded text-indigo-900 font-bold focus:ring-1 focus:ring-indigo-500 outline-none">
-                </div>
-                <div class="flex items-center gap-2">
-                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Sliding Step</label>
-                    <input id="stepSize" value="1" class="w-12 text-center text-sm p-1 border border-indigo-200 rounded text-indigo-900 font-bold focus:ring-1 focus:ring-indigo-500 outline-none">
-                </div>
-                <button onclick="runAutoScan()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2 rounded font-bold ml-auto shadow-sm transition">Generate Lib</button>
-            </div>
+    </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex flex-col h-[320px]">
-                    <div class="flex justify-between mb-1">
-                        <label class="text-xs font-bold text-slate-500">Plain Text Output</label>
-                        <button onclick="copyRaw()" id="btnCopyRaw" class="text-xs text-green-600 font-bold hover:underline">Copy All</button>
-                    </div>
-                    <textarea id="maskRaw" class="flex-1 p-3 border border-slate-200 rounded font-mono text-xs resize-none bg-slate-50 focus:outline-none" readonly></textarea>
-                </div>
 
-                <div class="flex flex-col h-[320px]">
-                    <div class="flex justify-between mb-1">
-                        <label class="text-xs font-bold text-slate-500">Library List (<span id="libCount">0</span>)</label>
-                        <button onclick="clearList()" class="text-xs text-red-400 font-bold hover:text-red-600">Clear All</button>
-                    </div>
-                    <div class="mask-visual-container">
-                        <div id="maskListScroll" class="mask-list-scroll">
-                            <div class="text-center text-slate-300 text-xs mt-10">Empty</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
+   </div> <!-- ✅ APP (แยกออกมาเลย) -->
+  <div id="app" class="hidden">
+<div class="flex items-center justify-between mb-6">
 
-    <main id="view-codon" class="tool-view hidden">
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-bold text-slate-800">🦠 Rare Codon Map</h2>
-                <span class="bg-yellow-300 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold border border-yellow-400">Ref: E. coli K12</span>
-            </div>
-            <textarea id="codonInput" class="w-full p-3 border border-slate-200 rounded font-mono text-sm uppercase h-24 mb-4 focus:outline-none focus:ring-2 focus:ring-yellow-400" placeholder="PASTE DNA SEQUENCE HERE..." oninput="analyzeCodons()"></textarea>
-            <div class="p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                <div id="codonGrid" class="grid grid-cols-8 md:grid-cols-12 gap-2"></div>
-            </div>
-        </div>
-    </main>
+  <!-- LEFT: LOGO -->
+  <div class="flex items-center gap-3">
+    <div class="text-3xl">🧬</div>
+    <div>
+      <div class="text-2xl font-semibold tracking-tight">Pa1oLAB Workbench ୧ʕ•̀ᴥ•́ʔ୨</div>
+      <div class="text-xs text-gray-400 -mt-1">Protein Engineering Toolkit</div>
+    </div>
+    </div>
 
-    <script>
-        let libraryList = [];
-        
-        window.switchTab = function(id) {
-            document.querySelectorAll('.tool-view').forEach(e => e.classList.add('hidden'));
-            document.getElementById('view-'+id).classList.remove('hidden');
-            ['align','mask','codon'].forEach(k => {
-                document.getElementById('btn-'+k).className = (k===id) ? 'nav-btn nav-active' : 'nav-btn nav-inactive';
-            });
-        }
+  <!-- RIGHT: TAB -->
+  <div class="flex bg-gray-100 p-1 rounded-xl shadow-inner">
 
-        // --- 1. ALIGNMENT (FIXED: ATOMIC UPDATE) ---
-        window.runAlign = function() {
-            // 1. Get Input
-            const raw = document.getElementById('alnInput').value;
-            
-            // 2. Validate Input (Alert user if empty instead of just clearing output)
-            if(!raw || !raw.trim()) {
-                alert("⚠️ Please enter sequence data first.");
-                return; // Stop here. Do NOT clear the existing output.
-            }
+    <div class="tab active px-4 py-2 rounded-lg text-sm font-medium"
+      onclick="switchTab('mask',this)">
+      Masking
+    </div>
 
-            // 3. Prepare Variables (Local Scope)
-            const lines = raw.split('\n');
-            let seqs = []; 
-            let curr = {n:'', s:''};
-            
-            // 4. Parse
-            lines.forEach(l => {
-                l = l.trim();
-                if(l.startsWith('>')) { 
-                    if(curr.n || curr.s) seqs.push(curr); 
-                    curr={n:l.substring(1),s:''}; 
-                } else {
-                    if(!curr.n) curr.n = "Input_Seq"; 
-                    curr.s += l.replace(/[^A-Za-z\-\.]/g,'').toUpperCase();
-                }
-            });
-            if(curr.n || curr.s) seqs.push(curr);
-            
-            if(seqs.length === 0) {
-                alert("No valid sequences found.");
-                return;
-            }
+    <div class="tab px-4 py-2 rounded-lg text-sm font-medium"
+      onclick="switchTab('mut',this)">
+      Mutagenesis
+    </div>
 
-            // 5. Generate HTML (In Memory ONLY)
-            const ref = seqs[0];
-            const width = 100; 
-            let newHTML = `<div class="aln-container">`;
+  </div>
 
-            for(let i=0; i < ref.s.length; i += width) {
-                newHTML += `<div class="aln-block">`;
-                
-                // Ref Row
-                let chunkRef = ref.s.substr(i, width);
-                let refHtml = "";
-                for(let k=0; k<chunkRef.length; k++) {
-                    let pos = i + k + 1;
-                    let aa = chunkRef[k];
-                    refHtml += `<span class="res-box" onmouseenter="showStat(${pos}, '${aa}', 'Ref')">${aa}</span>`;
-                }
+</div>
+</div>
 
-                newHTML += `<div class="aln-row">
-                            <div class="aln-name" title="${ref.n}">Ref</div>
-                            <div class="aln-seq seq-ref">${refHtml}</div>
-                         </div>`;
+<!-- MASK -->
+<!-- 🔥 MASK CARD -->
+<div id="mask" class="bg-white p-6 rounded shadow">
 
-                // Mutant Rows
-                for(let m=1; m<seqs.length; m++) {
-                    let sObj = seqs[m];
-                    let chunkMut = sObj.s.substr(i, width);
-                    let vis = "";
-                    for(let k=0; k<chunkMut.length; k++) {
-                        let pos = i + k + 1;
-                        let mc = chunkMut[k] || '';
-                        let rc = chunkRef[k] || ''; 
-                        let cssClass = "", text = "";
+<input id="maskInput"
+class="w-full p-3 border rounded mb-3 text-center"
+placeholder="Protein (1-letter)">
 
-                        if(mc===rc && mc!=='-') { cssClass="c-match"; text="."; }
-                        else if(mc==='-') { cssClass="c-gap"; text="-"; }
-                        else { cssClass="c-mut"; text=mc; }
+<!-- MODE -->
+<div class="flex bg-gray-100 rounded-xl p-1 w-fit mx-auto mb-4">
+  <div id="modeManual" class="org active" onclick="setMode('manual',this)">Manual</div>
+  <div id="modeSliding" class="org" onclick="setMode('sliding',this)">Sliding</div>
+</div>
 
-                        vis += `<span class="res-box ${cssClass}" onmouseenter="showStat(${pos}, '${mc}', '${sObj.n}')">${text}</span>`;
-                    }
-                    newHTML += `<div class="aln-row">
-                                <div class="aln-name" title="${sObj.n}">${sObj.n.substring(0,10)}</div>
-                                <div class="aln-seq">${vis}</div>
-                             </div>`;
-                }
-                newHTML += `</div>`;
-            }
-            newHTML += `</div>`;
+<!-- CONTROLS -->
+<div class="flex items-end justify-center gap-4 mb-5">
 
-            // 6. SWAP (Atomic Update)
-            // Only now do we touch the DOM. This prevents flickering or empty states.
-            document.getElementById('seqLen').innerText = ref.s.length;
-            document.getElementById('alnOutput').innerHTML = newHTML;
-        }
+  <div class="flex flex-col items-center">
+    <span class="text-xs text-gray-400 mb-1">Window</span>
+    <input id="win" value="5"
+    class="w-16 px-2 py-1.5 border rounded-lg text-center shadow-sm
+    focus:ring-2 focus:ring-indigo-400 outline-none">
+  </div>
 
-        window.showStat = function(pos, aa, name) {
-            const bar = document.getElementById('alignStatus');
-            let displayAA = aa === '.' ? 'Match' : aa;
-            bar.innerHTML = `
-                <div class="flex items-center gap-4">
-                    <span class="bg-indigo-600 text-white px-2 py-1 rounded text-xs">POS: ${pos}</span>
-                    <span class="text-white">RESIDUE: <span class="text-yellow-400 text-lg font-bold">${displayAA}</span></span>
-                    <span class="text-slate-400 text-xs border-l border-slate-600 pl-4">Seq: ${name}</span>
-                </div>
-            `;
-        }
+  <div class="flex flex-col items-center">
+    <span class="text-xs text-gray-400 mb-1">Step</span>
+    <input id="step" value="1"
+    class="w-16 px-2 py-1.5 border rounded-lg text-center shadow-sm
+    focus:ring-2 focus:ring-indigo-400 outline-none">
+  </div>
 
-        // --- 2. MASKING ---
-        window.renderGrid = function() {
-            const seq = document.getElementById('maskSeq').value.trim().toUpperCase();
-            const container = document.getElementById('gridContainer');
-            if(!seq) { container.innerHTML = `<span class="text-xs text-slate-400 m-auto">Enter sequence to see grid</span>`; return; }
-            let h = "";
-            for(let i=0; i<seq.length; i++) {
-                h += `<div class="mask-grid-box" id="mb-${i}" onclick="toggleBox(${i})">
-                    <span class="text-xs font-bold text-slate-600">${seq[i]}</span>
-                    <span class="text-[8px] text-slate-300">${i+1}</span>
-                </div>`;
-            }
-            container.innerHTML = h;
-        }
-        window.toggleBox = function(i) { document.getElementById(`mb-${i}`).classList.toggle('active'); }
-        window.clearGrid = function() { document.querySelectorAll('.mask-grid-box').forEach(b => b.classList.remove('active')); }
 
-        window.addCurrentSelection = function() {
-            const seq = document.getElementById('maskSeq').value.trim().toUpperCase();
-            if(!seq) return;
-            let m = "", has=false;
-            for(let i=0; i<seq.length; i++) {
-                const b = document.getElementById(`mb-${i}`);
-                if(b && b.classList.contains('active')) { m+="_"; has=true; } else m+=seq[i];
-            }
-            if(has) { if(!libraryList.includes(m)) libraryList.push(m); updateList(); }
-        }
+</div>
 
-        window.runAutoScan = function() {
-            const seq = document.getElementById('maskSeq').value.trim().toUpperCase();
-            if(!seq) return;
-            const w = parseInt(document.getElementById('winSize').value)||3;
-            const s = parseInt(document.getElementById('stepSize').value)||1;
-            for(let i=0; i<=seq.length-w; i+=s) {
-                let v = seq.substring(0,i) + "_".repeat(w) + seq.substring(i+w);
-                if(!libraryList.includes(v)) libraryList.push(v);
-            }
-            updateList();
-        }
+<!-- GRID -->
+<div id="maskGrid" class="flex flex-wrap gap-3 justify-center"></div>
 
-        window.updateList = function() {
-            document.getElementById('maskRaw').value = libraryList.join('\n');
-            document.getElementById('libCount').innerText = libraryList.length;
-            const con = document.getElementById('maskListScroll');
-            if(libraryList.length===0) { con.innerHTML=`<div class="text-center text-slate-300 text-xs mt-10">Empty</div>`; return; }
-            let h = "";
-            libraryList.forEach((seq, idx) => {
-                h += `<div class="list-card">
-                    <div class="flex items-center gap-2 overflow-hidden">
-                        <span class="text-slate-400 w-5 text-right font-mono">${idx+1}.</span>
-                        <span class="text-slate-700 font-mono font-bold tracking-wider truncate">${seq}</span>
-                    </div>
-                    <button onclick="copyByIndex(${idx}, this)" class="btn-copy-ready">Copy</button>
-                </div>`;
-            });
-            con.innerHTML = h;
-        }
+<!-- OUTPUT -->
+<div id="maskLib"
+class="mt-4 font-mono text-sm bg-gray-50 border rounded p-3 max-h-40 overflow-y-auto">
+</div>
 
-        window.copyByIndex = function(idx, btn) {
-            const txt = libraryList[idx];
-            navigator.clipboard.writeText(txt);
-            btn.innerText = "Copied!";
-            btn.style.backgroundColor = "#22c55e"; 
-            btn.style.color = "white";
-            setTimeout(()=>{ 
-                btn.innerText = "Copy"; 
-                btn.style.backgroundColor = ""; 
-                btn.style.color = ""; 
-            }, 1000);
-        }
+<!-- COPY -->
+<div class="mt-3 flex justify-between items-center">
 
-        window.clearList = function() { libraryList=[]; updateList(); }
-        window.copyRaw = function() {
-            document.getElementById('maskRaw').select();
-            document.execCommand('copy');
-            let b = document.getElementById('btnCopyRaw');
-            b.innerText="Copied!"; setTimeout(()=>b.innerText="Copy All",1000);
-        }
+<span id="copyToast"
+class="text-xs text-green-600 opacity-0 transition">
+Copied ✓
+</span>
 
-        // --- 3. CODON ---
-        window.analyzeCodons = function() {
-            const dna = document.getElementById('codonInput').value.toUpperCase().replace(/[^ATGC]/g,'');
-            const map = {'TTT':'F','TTC':'F','TTA':'L','TTG':'L','CTT':'L','CTC':'L','CTA':'L','CTG':'L','ATT':'I','ATC':'I','ATA':'I','ATG':'M','GTT':'V','GTC':'V','GTA':'V','GTG':'V','TCT':'S','TCC':'S','TCA':'S','TCG':'S','CCT':'P','CCC':'P','CCA':'P','CCG':'P','ACT':'T','ACC':'T','ACA':'T','ACG':'T','GCT':'A','GCC':'A','GCA':'A','GCG':'A','TAT':'Y','TAC':'Y','TAA':'*','TAG':'*','CAT':'H','CAC':'H','CAA':'Q','CAG':'Q','AAT':'N','AAC':'N','AAA':'K','AAG':'K','GAT':'D','GAC':'D','GAA':'E','GAG':'E','TGT':'C','TGC':'C','TGA':'*','TGG':'W','CGT':'R','CGC':'R','CGA':'R','CGG':'R','AGT':'S','AGC':'S','AGA':'R','AGG':'R','GGT':'G','GGC':'G','GGA':'G','GGG':'G'};
-            const usage = {'TTT':22.3,'TTC':16.5,'TTA':13.7,'TTG':13.6,'CTT':11.0,'CTC':11.1,'CTA':3.9,'CTG':52.9,'ATT':30.4,'ATC':25.0,'ATA':4.5,'ATG':27.7,'GTT':18.3,'GTC':15.2,'GTA':10.9,'GTG':26.3,'TCT':8.5,'TCC':8.6,'TCA':7.1,'TCG':8.9,'CCT':7.0,'CCC':5.5,'CCA':8.4,'CCG':23.2,'ACT':8.9,'ACC':23.4,'ACA':7.1,'ACG':14.4,'GCT':15.3,'GCC':25.5,'GCA':20.3,'GCG':33.7,'TAT':16.2,'TAC':12.2,'TAA':2.0,'TAG':0.2,'CAT':12.8,'CAC':9.7,'CAA':15.1,'CAG':29.0,'AAT':17.6,'AAC':21.6,'AAA':33.2,'AAG':13.3,'GAT':32.2,'GAC':19.1,'GAA':39.7,'GAG':17.8,'TGT':5.2,'TGC':6.4,'TGA':0.9,'TGG':15.3,'CGT':20.9,'CGC':22.0,'CGA':3.6,'CGG':5.4,'AGT':8.7,'AGC':16.0,'AGA':2.1,'AGG':1.2,'GGT':24.7,'GGC':29.6,'GGA':7.9,'GGG':11.0};
-            
-            let maxF={}; for(let c in map) { let a=map[c]; if(!maxF[a] || usage[c]>maxF[a]) maxF[a]=usage[c]; }
-            let h = "";
-            for(let i=0; i<dna.length; i+=3) {
-                let c = dna.substr(i,3); if(c.length<3) break;
-                let aa = map[c]||'?';
-                let isRare = ((usage[c]||0)/(maxF[aa]||1)) < 0.10;
-                if(aa==='M'||aa==='W') isRare=false;
-                h += `<div class="codon-card ${isRare?'codon-rare':''}">
-                    <div class="text-[10px] font-bold text-slate-500">${aa}</div>
-                    <div class="text-xs font-mono text-slate-800">${c}</div>
-                    <div class="text-[8px] text-slate-300 mt-1">${i+1}</div>
-                </div>`;
-            }
-            document.getElementById('codonGrid').innerHTML = h;
-        }
-    </script>
+<button onclick="handleCopy()"
+class="text-sm px-4 py-1.5 bg-black text-white rounded-lg hover:bg-gray-800 transition shadow-sm">
+Copy All
+</button>
+
+</div>
+
+</div>
+
+  
+<!-- MUT -->
+<div id="mut" class="hidden bg-white p-6 rounded shadow">
+
+<div class="mb-4">
+<div id="orgButtons"
+class="flex gap-1 bg-gray-100 rounded-xl p-1 w-fit shadow-inner">
+</div>
+</div>
+
+<!-- 🔥 NAME FORMAT -->
+<div class="mb-4">
+
+<!-- label -->
+<div class="text-sm font-semibold text-gray-600 mb-1">
+Sequence Name
+</div>
+
+<!-- container -->
+<div class="flex items-center gap-2 bg-white border rounded-xl px-3 py-2 shadow-sm focus-within:ring-2 focus-within:ring-indigo-400">
+
+<!-- input -->
+<div id="seqName"
+contenteditable="true"
+data-placeholder="Enter sequence name..."
+class="flex-1 outline-none text-sm"></div>
+
+<!-- toolbar -->
+<div class="flex gap-1 border-l pl-2">
+
+<button onclick="formatText('bold')"
+class="px-2 py-1 rounded hover:bg-gray-100 font-bold">
+B
+</button>
+
+<button onclick="formatText('italic')"
+class="px-2 py-1 rounded hover:bg-gray-100 italic">
+I
+</button>
+
+</div>
+
+</div>
+</div>
+
+<textarea id="dnaInput" class="w-full p-3 border rounded mb-3" placeholder="DNA sequence"></textarea>
+
+<div id="viewer" class="flex flex-wrap gap-3"></div>
+
+<div id="dropdown" class="hidden bg-white border rounded shadow p-3 text-sm max-h-80 overflow-y-auto"></div>
+
+<div class="mt-4">
+<div id="mutSummary" class="flex gap-2 flex-wrap"></div>
+
+<div class="mt-5">
+
+<!-- 🧬 Output Panel -->
+<div class="bg-white border rounded-xl shadow-sm p-4">
+
+<div class="flex justify-between items-center mb-2">
+
+<div class="text-sm font-semibold text-gray-600">
+Mutated Sequence
+</div>
+
+<div class="text-xs text-gray-400">
+Auto-generated
+</div>
+
+</div>
+
+<div id="outputDNA"
+class="font-mono text-sm bg-gray-50 border rounded-lg p-3 break-all leading-relaxed">
+</div>
+
+</div>
+
+<div class="mt-4 flex justify-end">
+
+<div class="flex gap-2">
+
+<button onclick="exportWord()"
+class="px-4 py-2 rounded-lg border text-gray-700 hover:bg-gray-100 transition">
+Export
+</button>
+
+<button id="backupBtn" onclick="backupData()"
+class="px-4 py-2 rounded-lg bg-black text-white hover:bg-gray-800 transition flex items-center gap-2">
+
+<!-- spinner -->
+<span id="backupSpinner" class="hidden animate-spin">⏳</span>
+
+<!-- text -->
+<span id="backupText">Backup</span>
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+
+/* TAB */
+function switchTab(id,el){
+document.getElementById("mask").classList.add("hidden")
+document.getElementById("mut").classList.add("hidden")
+document.getElementById(id).classList.remove("hidden")
+document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"))
+el.classList.add("active")
+}
+
+/* ================= MASK ================= */
+let maskSeq="",maskSet=new Set(),library=[]
+
+document.getElementById("maskInput").oninput=e=>{
+maskSeq=e.target.value.toUpperCase().replace(/[^A-Z]/g,"")
+renderMask()
+}
+
+function renderMask(){
+
+let grid=document.getElementById("maskGrid")
+grid.innerHTML=""
+
+maskSeq.split("").forEach((a,i)=>{
+
+let d=document.createElement("div")
+d.className="mask-box border cursor-pointer transition"
+
+// 🔥 สี
+if(maskSet.has(i)){
+d.classList.add("bg-red-500","text-white","scale-105")
+}else{
+d.classList.add("bg-white")
+}
+
+// 🔥 layout ใหม่
+d.innerHTML=`
+<div class="text-xs opacity-60">${i+1}</div>
+<div class="text-lg font-semibold">${a}</div>
+`
+
+// 🔥 click
+d.onclick=()=>{
+maskSet.has(i)?maskSet.delete(i):maskSet.add(i)
+renderMask()
+}
+
+grid.appendChild(d)
+
+})
+
+}
+
+/* ================= MASK LOGIC ================= */
+
+function generateMask(){
+
+library=[]
+
+let w=+document.getElementById("win").value
+let s=+document.getElementById("step").value
+
+for(let i=0;i<=maskSeq.length-w;i+=s){
+let arr=[...maskSeq]
+for(let j=0;j<w;j++) arr[i+j]="_"
+library.push(arr.join(""))
+}
+
+document.getElementById("maskLib").innerHTML =
+library.map(x=>`
+<div class="flex justify-between items-center px-2 py-1 hover:bg-gray-100 rounded">
+<span>${x}</span>
+<button onclick="copyOne('${x}')" class="text-xs text-gray-400 hover:text-black">copy</button>
+</div>
+`).join("")
+
+}
+
+function generateManualMask(){
+
+library=[]
+
+let arr=[...maskSeq]
+
+maskSet.forEach(i=>{
+arr[i]="_"
+})
+
+library.push(arr.join(""))
+
+document.getElementById("maskLib").innerHTML =
+library.map(x=>`
+<div class="flex justify-between items-center px-2 py-1 hover:bg-gray-100 rounded">
+<span>${x}</span>
+<button onclick="copyOne('${x}')" class="text-xs text-gray-400 hover:text-black">copy</button>
+</div>
+`).join("")
+
+}
+
+function handleGenerate(){
+if(maskMode==="manual"){
+generateManualMask()
+}else{
+generateMask()
+}
+}
+
+function handleCopy(){
+
+if(maskMode==="manual"){
+generateManualMask()
+}
+
+if(!library.length){
+alert("No library")
+return
+}
+
+navigator.clipboard.writeText(library.join("\n"))
+
+// 🔥 animation
+let toast = document.getElementById("copyToast")
+
+toast.classList.remove("opacity-0")
+toast.classList.add("opacity-100")
+
+setTimeout(()=>{
+toast.classList.remove("opacity-100")
+toast.classList.add("opacity-0")
+},1200)
+
+}
+
+function copyOne(seq){
+
+navigator.clipboard.writeText(seq)
+
+let toast = document.getElementById("copyToast")
+
+toast.innerText = "Copied 1 ✓"
+toast.classList.remove("opacity-0")
+toast.classList.add("opacity-100")
+
+setTimeout(()=>{
+toast.classList.remove("opacity-100")
+toast.classList.add("opacity-0")
+toast.innerText = "Copied ✓"
+},1000)
+
+}
+  /* ================= MASK ================= */
+
+let maskMode = "manual"
+
+function setMode(mode,el){
+
+maskMode = mode
+
+document.querySelectorAll("#modeManual,#modeSliding")
+.forEach(x=>x.classList.remove("active"))
+
+el.classList.add("active")
+
+// 🔥 FIX: ไม่ให้ library หาย
+if(maskSeq){
+  handleGenerate()
+}
+
+}
+
+/* ================= FORMAT ================= */
+function formatText(cmd){
+document.execCommand(cmd, false, null)
+}
+
+/* ================= AA ================= */
+const AA_INFO={
+A:{name:"Alanine",codons:["GCT","GCC","GCA","GCG"]},
+R:{name:"Arginine",codons:["CGT","CGC","CGA","CGG","AGA","AGG"]},
+N:{name:"Asparagine",codons:["AAT","AAC"]},
+D:{name:"Aspartic Acid",codons:["GAT","GAC"]},
+C:{name:"Cysteine",codons:["TGT","TGC"]},
+Q:{name:"Glutamine",codons:["CAA","CAG"]},
+E:{name:"Glutamic Acid",codons:["GAA","GAG"]},
+G:{name:"Glycine",codons:["GGT","GGC","GGA","GGG"]},
+H:{name:"Histidine",codons:["CAT","CAC"]},
+I:{name:"Isoleucine",codons:["ATT","ATC","ATA"]},
+L:{name:"Leucine",codons:["TTA","TTG","CTT","CTC","CTA","CTG"]},
+K:{name:"Lysine",codons:["AAA","AAG"]},
+M:{name:"Methionine",codons:["ATG"]},
+F:{name:"Phenylalanine",codons:["TTT","TTC"]},
+P:{name:"Proline",codons:["CCT","CCC","CCA","CCG"]},
+S:{name:"Serine",codons:["TCT","TCC","TCA","TCG","AGT","AGC"]},
+T:{name:"Threonine",codons:["ACT","ACC","ACA","ACG"]},
+W:{name:"Tryptophan",codons:["TGG"]},
+Y:{name:"Tyrosine",codons:["TAT","TAC"]},
+V:{name:"Valine",codons:["GTT","GTC","GTA","GTG"]}
+}
+
+const CODON_TO_AA={}
+Object.entries(AA_INFO).forEach(([aa,o])=>o.codons.forEach(c=>CODON_TO_AA[c]=aa))
+
+
+const organisms=["ecoli","pichia","coryne","bacillus"]
+let org="ecoli"
+
+const orgButtons=document.getElementById("orgButtons")
+organisms.forEach(o=>{
+let b=document.createElement("div")
+b.className="org"+(o==="ecoli"?" active":"")
+b.innerText=o
+b.onclick=()=>{
+org=o
+document.querySelectorAll('.org').forEach(x=>x.classList.remove('active'))
+b.classList.add('active')
+render()
+}
+orgButtons.appendChild(b)
+})
+
+const CODON_USAGE = {
+ecoli:{TTT:0.58,TTC:0.42,TTA:0.13,TTG:0.13,CTT:0.11,CTC:0.10,CTA:0.04,CTG:0.49,ATT:0.50,ATC:0.40,ATA:0.09,ATG:1.00,GTT:0.26,GTC:0.21,GTA:0.16,GTG:0.37,TCT:0.14,TCC:0.15,TCA:0.14,TCG:0.15,AGT:0.16,AGC:0.27,CCT:0.17,CCC:0.13,CCA:0.19,CCG:0.51,ACT:0.17,ACC:0.41,ACA:0.15,ACG:0.27,GCT:0.16,GCC:0.27,GCA:0.22,GCG:0.35,TAT:0.57,TAC:0.43,CAT:0.58,CAC:0.42,CAA:0.33,CAG:0.67,AAT:0.47,AAC:0.53,AAA:0.76,AAG:0.24,GAT:0.63,GAC:0.37,GAA:0.68,GAG:0.32,TGT:0.45,TGC:0.55,TGG:1.00,CGT:0.36,CGC:0.37,CGA:0.07,CGG:0.11,AGA:0.05,AGG:0.03,GGT:0.33,GGC:0.39,GGA:0.12,GGG:0.16,TAA:0.59,TAG:0.08,TGA:0.33},
+pichia:{TTT:0.54,TTC:0.46,TTA:0.16,TTG:0.33,CTT:0.16,CTC:0.08,CTA:0.11,CTG:0.16,ATT:0.50,ATC:0.31,ATA:0.18,ATG:1.00,GTT:0.42,GTC:0.23,GTA:0.15,GTG:0.19,TCT:0.29,TCC:0.20,TCA:0.18,TCG:0.09,AGT:0.15,AGC:0.09,CCT:0.35,CCC:0.15,CCA:0.42,CCG:0.09,ACT:0.40,ACC:0.26,ACA:0.24,ACG:0.11,GCT:0.45,GCC:0.26,GCA:0.23,GCG:0.06,TAT:0.47,TAC:0.53,CAT:0.57,CAC:0.43,CAA:0.61,CAG:0.39,AAT:0.48,AAC:0.52,AAA:0.47,AAG:0.53,GAT:0.58,GAC:0.42,GAA:0.56,GAG:0.44,TGT:0.64,TGC:0.36,TGG:1.00,CGT:0.17,CGC:0.05,CGA:0.10,CGG:0.05,AGA:0.48,AGG:0.16,GGT:0.44,GGC:0.14,GGA:0.33,GGG:0.10,TAA:0.51,TAG:0.29,TGA:0.20},
+coryne:{TTT:0.37,TTC:0.63,TTA:0.05,TTG:0.20,CTT:0.17,CTC:0.23,CTA:0.06,CTG:0.29,ATT:0.38,ATC:0.59,ATA:0.03,ATG:1.00,GTT:0.29,GTC:0.33,GTA:0.11,GTG:0.27,TCT:0.19,TCC:0.23,TCA:0.13,TCG:0.08,AGT:0.18,AGC:0.19,CCT:0.21,CCC:0.30,CCA:0.27,CCG:0.22,ACT:0.24,ACC:0.40,ACA:0.23,ACG:0.13,GCT:0.25,GCC:0.40,GCA:0.22,GCG:0.13,TAT:0.43,TAC:0.57,CAT:0.44,CAC:0.56,CAA:0.27,CAG:0.73,AAT:0.36,AAC:0.64,AAA:0.32,AAG:0.68,GAT:0.46,GAC:0.54,GAA:0.37,GAG:0.63,TGT:0.42,TGC:0.58,TGG:1.00,CGT:0.09,CGC:0.36,CGA:0.11,CGG:0.44,AGA:0.00,AGG:0.00,GGT:0.28,GGC:0.42,GGA:0.16,GGG:0.14,TAA:0.64,TAG:0.10,TGA:0.26},
+bacillus:{TTT:0.60,TTC:0.40,TTA:0.12,TTG:0.12,CTT:0.24,CTC:0.18,CTA:0.06,CTG:0.29,ATT:0.67,ATC:0.33,ATA:0.00,ATG:1.00,GTT:0.36,GTC:0.24,GTA:0.20,GTG:0.20,TCT:0.21,TCC:0.20,TCA:0.14,TCG:0.05,AGT:0.22,AGC:0.18,CCT:0.29,CCC:0.14,CCA:0.43,CCG:0.14,ACT:0.31,ACC:0.27,ACA:0.28,ACG:0.14,GCT:0.36,GCC:0.22,GCA:0.28,GCG:0.14,TAT:0.58,TAC:0.42,CAT:0.58,CAC:0.42,CAA:0.66,CAG:0.34,AAT:0.55,AAC:0.45,AAA:0.74,AAG:0.26,GAT:0.63,GAC:0.37,GAA:0.71,GAG:0.29,TGT:0.61,TGC:0.39,TGG:1.00,CGT:0.36,CGC:0.18,CGA:0.11,CGG:0.11,AGA:0.18,AGG:0.06,GGT:0.34,GGC:0.21,GGA:0.25,GGG:0.20,TAA:0.62,TAG:0.09,TGA:0.29}
+}
+/* ================= CORE ================= */
+let codons=[],orig=[],mut=[],originalCodons=[]
+
+document.getElementById("dnaInput").oninput = e => {
+
+let dna = e.target.value.toUpperCase().replace(/[^ATGC]/g,"")
+
+// 🔥 reset ทุกอย่าง (แก้ REF เพี้ยน)
+codons=[];orig=[];mut=[];originalCodons=[]
+
+for(let i=0;i<dna.length;i+=3){
+
+let c=dna.slice(i,i+3)
+
+if(c.length===3){
+codons.push(c)
+orig.push(CODON_TO_AA[c]||"X")
+
+// 🔥 สำคัญ: ใช้ index ไม่ใช้ push
+originalCodons[i/3] = c
+}
+}
+
+render()
+}
+
+function render(){
+let viewer=document.getElementById("viewer")
+viewer.innerHTML=""
+
+codons.forEach((c,i)=>{
+let aa = CODON_TO_AA[c] || "X"
+let usage = CODON_USAGE[org] || {}
+
+let aaCodons = AA_INFO[aa]?.codons || []
+let sorted = [...aaCodons].sort((a,b)=>(usage[b]||0)-(usage[a]||0))
+
+let current = usage[c] || 0
+let rank = sorted.indexOf(c)
+
+let d=document.createElement("div")
+d.className="box border cursor-pointer"
+
+// 🟢 best
+if(rank === 0){
+  d.classList.add("bg-green-200")
+}
+
+// 🔴 rare
+if(rank === sorted.length-1 && current < 0.15){
+  d.classList.add("bg-red-200")
+}
+
+// 🟡 mutated
+if(mut.some(m=>m.pos===i)){
+  d.classList.add("bg-yellow-200")
+}
+
+d.innerHTML=`
+<div class="text-[11px] opacity-60">${i+1}</div>
+
+<div class="text-lg font-semibold">${aa}</div>
+
+<div class="text-xs tracking-wide">${c}</div>
+
+<div class="text-[10px] opacity-50">${current.toFixed(2)}</div>
+`
+
+d.onclick=e=>{e.stopPropagation();openDD(e,i,d)}
+
+viewer.appendChild(d)
+})
+
+/* summary */
+let summaryHTML = ""
+
+mut.forEach(m => {
+
+summaryHTML += `
+<div class="px-3 py-1 bg-yellow-100 border rounded-full text-sm">
+
+${(m.fromAA || m.from)}${m.pos+1}${(m.toAA || m.to)}
+
+<span class="text-xs opacity-70 ml-1">
+${m.fromCodon ? `(${m.fromCodon}→${m.toCodon})` : ""}
+</span>
+
+</div>
+`
+
+})
+
+document.getElementById("mutSummary").innerHTML = summaryHTML
+/* DNA */
+let dnaHTML=""
+codons.forEach((c,i)=>{
+dnaHTML+=mut.some(m=>m.pos===i)
+? `<span class="px-1 border bg-yellow-200">${c}</span>`
+: c
+})
+document.getElementById("outputDNA").innerHTML=dnaHTML
+}
+
+/* dropdown */
+function openDD(e,i,box){
+
+let dropdown=document.getElementById("dropdown")
+dropdown.innerHTML=""
+dropdown.classList.remove("hidden")
+
+let usage = CODON_USAGE[org] || {}
+
+Object.entries(AA_INFO).forEach(([aa,o])=>{
+
+let g=document.createElement("div")
+g.innerHTML=`<div class="font-semibold text-xs mt-1">${o.name} (${aa})</div>`
+
+// sort codon by usage
+let sorted = [...o.codons].sort((a,b)=>(usage[b]||0)-(usage[a]||0))
+
+sorted.forEach((c,idx)=>{
+let val = usage[c] || 0
+
+let row=document.createElement("div")
+row.className="flex justify-between cursor-pointer px-2 rounded"
+
+// 🟢 best
+if(idx === 0){
+  row.classList.add("bg-green-100")
+}
+
+// 🔴 rare
+if(idx === sorted.length-1 && val < 0.15){
+  row.classList.add("bg-red-100")
+}
+
+row.innerHTML=`
+<span>${c}</span>
+<span class="text-xs opacity-70">${val.toFixed(2)}</span>
+`
+
+row.onclick=()=>{
+apply(i,c)
+dropdown.classList.add("hidden")
+}
+
+g.appendChild(row)
+})
+
+dropdown.appendChild(g)
+})
+
+// 📍 position fix (ไม่ลอยบน)
+let r=box.getBoundingClientRect()
+dropdown.style.left = r.right + 10 + "px"
+dropdown.style.top = Math.min(r.top, window.innerHeight - 250) + "px"
+}
+
+function apply(i,c){
+
+let oldCodon = codons[i]
+let oldAA = orig[i]
+let newAA = CODON_TO_AA[c]
+
+
+mut = mut.filter(m => m.pos !== i)
+
+
+if(oldCodon !== c){
+  mut.push({
+    pos:i,
+    fromAA:oldAA,
+    toAA:newAA,
+    fromCodon:oldCodon,
+    toCodon:c
+  })
+}
+
+codons[i] = c
+render()
+}
+
+/* ================= EXPORT ================= */
+function exportWord(){
+
+let nameHTML=document.getElementById("seqName").innerHTML
+
+let originalSeq = originalCodons.join("")
+let mutatedSeq = codons.join("")
+
+let mutText = mut.length===0
+? "None"
+: mut.map(m=>`${(m.fromAA || m.from)}${m.pos+1}${(m.toAA || m.to)}`).join(", ")
+
+let content=`
+<html><body style="font-family:Courier New; font-size:12pt">
+
+<p>>${nameHTML}</p>
+
+<p><b>Reference:</b></p>
+<p>${originalSeq}</p>
+
+<p><b>Mutated:</b></p>
+<p>${mutatedSeq}</p>
+
+<p><b>Mutations:</b></p>
+<p>${mutText}</p>
+
+</body></html>
+`
+
+let blob=new Blob(['\ufeff',content],{type:'application/msword'})
+let url=URL.createObjectURL(blob)
+
+let a=document.createElement("a")
+a.href=url
+a.download="sequence.doc"
+a.click()
+
+URL.revokeObjectURL(url)
+}
+
+/* ================= BACKUP ================= */
+async function backupData(){
+
+let btn = document.getElementById("backupBtn")
+let text = document.getElementById("backupText")
+let spinner = document.getElementById("backupSpinner")
+
+// 🔥 start loading
+btn.classList.add("opacity-60","cursor-wait")
+spinner.classList.remove("hidden")
+text.innerHTML = "Saving..."
+
+let name=document.getElementById("seqName").innerText.trim()
+let sequence=codons.join("")
+let mutations = mut.length===0
+? "None"
+: mut.map(m=>`${(m.fromAA||m.from)}${m.pos+1}${(m.toAA||m.to)}`).join(", ")
+
+await fetch("https://script.google.com/macros/s/AKfycbzPrB-EgpmEg_pqARZf3tG_zw0ObBeWU_0-DTauKhCT9Tscgws_MHgtXFbYdsLrf3NFAQ/exec",{
+method:"POST",
+mode:"no-cors",
+body: JSON.stringify({name,sequence,mutations})
+})
+
+// ✅ finish
+spinner.classList.add("hidden")
+text.innerHTML = "Saved ✓"
+btn.classList.remove("opacity-60","cursor-wait")
+
+setTimeout(()=>{
+  text.innerHTML = "Backup"
+},1500)
+
+}
+
+document.addEventListener("click",()=>{
+document.getElementById("dropdown").classList.add("hidden")
+})
+function login(){
+
+  let u = document.getElementById("user").value
+  let p = document.getElementById("pass").value
+
+  if(u === "NH" && p === "101"){
+    document.getElementById("loginPage").style.display = "none"
+    document.getElementById("app").classList.remove("hidden")
+  }else{
+    document.getElementById("err").classList.remove("hidden")
+  }
+
+}
+</script>
+
 </body>
 </html>
